@@ -1,16 +1,12 @@
-@(message: String)
+@(message: String)(implicit request: RequestHeader)
 
 @main("Map") {
 
     <h2>TrackMe!</h2>
-    <div id="myMap" style="height: 900px"></div>
+    <div id="myMap" style="height: 600px;"></div>
     <script src="http://api-maps.yandex.ru/2.0-stable/?load=package.full&lang=ru-RU" type="text/javascript"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/map.js")"></script>
     <script type="text/javascript">
-        ymaps.ready(function(){
-            var myMap = new ymaps.Map('myMap', {
-                center: [55.76, 37.64],
-                zoom: 7
-            });
-        })
+        init("@routes.MapPage.ws().webSocketURL()")
     </script>
 }
