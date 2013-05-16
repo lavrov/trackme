@@ -54,8 +54,10 @@ MapManager.prototype = {
     },
 
     pointToPlacemark: function(point) {
+        var date = new Date(point.time);
+        var formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
         return new ymaps.Placemark([point.latitude, point.longitude],{
-            hintContent: point.time
+            hintContent: formattedDate
         });
     }
 };

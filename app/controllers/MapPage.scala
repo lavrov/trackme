@@ -12,7 +12,7 @@ object MapPage extends Controller {
     Map(
       "longitude" -> toJson(position.longitude),
       "latitude" -> toJson(position.latitude),
-      "time" -> toJson(position.timestamp.toString)
+      "time" -> toJson(position.timestamp.getTime)
     )
   ))
 
