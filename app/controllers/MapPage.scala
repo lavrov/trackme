@@ -1,15 +1,19 @@
 package controllers
 
 import play.api.mvc._
-import play.api.libs.iteratee.{Enumeratee, Iteratee}
-import play.api.libs.json.Json
-import model.{Position, ObjectTracker}
+import play.api.libs.iteratee.{Enumerator, Enumeratee, Iteratee}
+import play.api.libs.json.Json._
+import model.{PositionDao, Position, ObjectTracker}
 import play.api.Logger
 
 object MapPage extends Controller {
 
-  def positionToString(position: Position) = Json.stringify(Json.toJson(
-    Map("longitude" -> position.longitude, "latitude" -> position.latitude)
+  def positionToString(position: Position) = stringify(toJson(
+    Map(
+      "longitude" -> toJson(position.longitude),
+      "latitude" -> toJson(position.latitude),
+      "time" -> toJson(position.timestamp.toString)
+    )
   ))
 
   def map = Action { implicit request =>
@@ -23,7 +27,7 @@ object MapPage extends Controller {
       Logger.info("WebSocket disconnected")
     )
 
-    val out = ObjectTracker.enumerator &> Enumeratee.map[Position](positionToString)
+    val out = Enumerator(PositionDao.all: _*) >- ObjectTracker.enumerator &> Enumeratee.map[Position](positionToString)
 
     (in, out)
   }

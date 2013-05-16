@@ -1,16 +1,16 @@
 function init(wsUrl) {
     ymaps.ready(function(){
-        pageReady(
-            new ymaps.Map('myMap', {
-                center: [55.76, 37.64],
-                zoom: 7
-            }),
-            wsUrl
-        )
+        var map = new ymaps.Map('myMap', {
+            center: [55.76, 37.64],
+            zoom: 7,
+            behaviors: ["default", "scrollZoom"]
+        });
+        map.controls.add("mapTools").add("zoomControl").add("typeSelector");
+        mapReady(map, wsUrl)
     })
 }
 
-function pageReady(map, wsUrl){
+function mapReady(map, wsUrl){
     var mapManager = new MapManager(map);
 
     ws = new WebSocket(wsUrl);
@@ -24,18 +24,39 @@ function pageReady(map, wsUrl){
     };
 
     function receiveMessage(json) {
-        mapManager.updatePosition(json)
+        mapManager.updateCurrentPoint(json)
     }
 }
 
 function MapManager(map){
     this.map = map;
+    this.currentPointCollection = new ymaps.GeoObjectCollection({}, {
+            preset: "twirl#greenIcon"
+        }
+    );
+    this.historyPointCollection = new ymaps.GeoObjectCollection({}, {});
+    map.geoObjects.add(this.currentPointCollection);
+    map.geoObjects.add(this.historyPointCollection);
 }
 
 MapManager.prototype = {
-    updatePosition: function(position) {
-        var placemark = new ymaps.Placemark([position.latitude, position.longitude]);
-        this.map.geoObjects.add(placemark);
+    updateCurrentPoint: function(point) {
+        var self = this;
+        this.currentPointCollection.each(function(placemark){
+            self.appendToHistory(placemark);
+        });
+        this.currentPointCollection.removeAll();
+        this.currentPointCollection.add(this.pointToPlacemark(point));
+    },
+
+    appendToHistory: function(placemark) {
+        this.historyPointCollection.add(placemark);
+    },
+
+    pointToPlacemark: function(point) {
+        return new ymaps.Placemark([point.latitude, point.longitude],{
+            hintContent: point.time
+        });
     }
 };
 

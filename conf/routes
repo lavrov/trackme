@@ -3,12 +3,11 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET     /                           controllers.MapPage.map
 
-GET     /map                        controllers.MapPage.map
 GET     /map/ws                     controllers.MapPage.ws
 
-GET     /tracker/update/:lng/:lat   controllers.Tracker.update(lng: Double, lat: Double)
+GET     /tracker/update/:lng/:lat   controllers.Tracker.update(lng, lat)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
