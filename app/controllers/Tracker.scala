@@ -15,7 +15,7 @@ object Tracker extends Controller {
   def ogtPush(restUrl: String) = ogtpush
 
   def ogtpush = Action(parse.urlFormEncoded) { implicit request =>
-    Logger.info(s"OGT data received: ${request.body}")
+    Logger.debug(s"OGT data received: ${request.body}")
     val points = request.body.collect {
       case (PointParameterKey(index, name), values) if values.nonEmpty =>
         (index -> name) -> values.head
