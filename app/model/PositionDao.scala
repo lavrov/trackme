@@ -9,9 +9,20 @@ import SqlParser._
 import Column._
 
 object PositionDao {
+  val PositionParser = (get[java.math.BigDecimal]("longitude")~get[java.math.BigDecimal]("latitude")~date("timestamp")*)
+
   def all = DB.withConnection( implicit conn =>
     SQL("select * from Position")
-      .as(get[java.math.BigDecimal]("longitude")~get[java.math.BigDecimal]("latitude")~date("timestamp")*)
+      .as(PositionParser)
+      .map { case lng~lat~time => Position(lng, lat, time)}
+  )
+
+  def lastPoints = DB.withConnection( implicit conn =>
+    SQL("select * from Position p where p.timestamp > {time} order by p.timestamp")
+      .on(
+        'time -> new Date(System.currentTimeMillis() - 600000L)
+      )
+      .as(PositionParser)
       .map { case lng~lat~time => Position(lng, lat, time)}
   )
 
