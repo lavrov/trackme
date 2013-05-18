@@ -8,6 +8,7 @@ function init(wsUrl) {
         map.controls.add("mapTools").add("zoomControl").add("typeSelector");
         mapReady(map, wsUrl)
     })
+    initSidebar();
 }
 
 function mapReady(map, wsUrl){

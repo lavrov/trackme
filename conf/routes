@@ -2,14 +2,16 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
 GET     /                           controllers.MapPage.map
-
 GET     /map/ws                     controllers.MapPage.ws
 
-GET     /tracker/push/:lng/:lat   controllers.Tracker.push(lng, lat)
+GET     /tracker/push/:lng/:lat     controllers.Tracker.push(lng, lat)
+POST    /tracker/ogtpush/*tail      controllers.Tracker.ogtPush(tail)
 
-POST    /tracker/ogtpush/*tail    controllers.Tracker.ogtPush(tail)
+GET     /about                      controllers.Application.about
 
-# Map static resources from the /public folder to the /assets URL path
+# Static resources
+GET     /assets/javascript/bootstrap/$file<.+\.js>            controllers.BootstrapJsAssets.at(path="/modules/bootstrap/js", file)
+
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
