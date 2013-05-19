@@ -8,10 +8,11 @@ function init(wsUrl) {
         map.controls.add("mapTools").add("zoomControl").add("typeSelector");
         mapReady(map, wsUrl)
     })
-    initSidebar();
 }
 
 function mapReady(map, wsUrl){
+    initSidebar(map);
+
     var mapManager = new MapManager(map);
 
     ws = new WebSocket(wsUrl);
@@ -27,6 +28,23 @@ function mapReady(map, wsUrl){
     function receiveMessage(json) {
         mapManager.updateCurrentPoint(json)
     }
+}
+
+function initSidebar(map) {
+    var $sidebar = $('#mapSidebar');
+    var $map = $('#myMap');
+    $('#showHideSidebar').on('click', function() {
+        if(!this['data-open']) {
+            $sidebar.show();
+            $map.css({'margin-left': '320px'});
+        }
+        else {
+            $sidebar.hide();
+            $map.css({'margin-left': '0'});
+        }
+        map.container.fitToViewport();
+        this['data-open'] = !this['data-open'];
+    });
 }
 
 function MapManager(map){
