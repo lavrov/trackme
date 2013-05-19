@@ -17,8 +17,8 @@ object PositionDao {
       .map { case lng~lat~time => Position(lng, lat, time)}
   )
 
-  def lastPoints = DB.withConnection( implicit conn =>
-    SQL("select * from Position p where p.timestamp > {time} order by p.timestamp")
+  def lastPoint = DB.withConnection( implicit conn =>
+    SQL("select top 1 * from Position p where p.timestamp > {time} order by p.timestamp desc")
       .on(
         'time -> new Date(System.currentTimeMillis() - 600000L)
       )

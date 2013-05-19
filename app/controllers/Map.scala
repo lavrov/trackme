@@ -27,7 +27,7 @@ object Map extends Controller {
       Logger.info("WebSocket disconnected")
     )
 
-    val out = Enumerator(PositionDao.lastPoints: _*) >- ObjectTracker.enumerator &> Enumeratee.map[Position](positionToString)
+    val out = Enumerator(PositionDao.lastPoint: _*) >- ObjectTracker.enumerator &> Enumeratee.map[Position](positionToString)
 
     (in, out)
   }
