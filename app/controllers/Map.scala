@@ -6,10 +6,10 @@ import play.api.libs.json.Json._
 import model.{PositionDao, Position, ObjectTracker}
 import play.api.Logger
 
-object MapPage extends Controller {
+object Map extends Controller {
 
   def positionToString(position: Position) = stringify(toJson(
-    Map(
+    collection.immutable.Map(
       "longitude" -> toJson(position.longitude),
       "latitude" -> toJson(position.latitude),
       "time" -> toJson(position.timestamp.getTime)
