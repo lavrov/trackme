@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String, scripts: Html = Html(""))(content: Html)
 
 <!DOCTYPE html>
 
@@ -17,6 +17,7 @@
 
     <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
 
+    @scripts
 </head>
 
 <body>
@@ -47,18 +48,18 @@
         @content
     </div><!--/.fluid-container-->
 
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-transition.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-alert.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-modal.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-dropdown.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-scrollspy.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-tab.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-tooltip.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-popover.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-button.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-collapse.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-carousel.js")"></script>
-    <script src="@routes.BootstrapJsAssets.at("bootstrap-typeahead.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-transition.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-alert.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-modal.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-dropdown.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-scrollspy.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-tab.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-tooltip.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-popover.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-button.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-collapse.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-carousel.js")"></script>
+    <script src="@routes.BootstrapAssets.at("bootstrap-typeahead.js")"></script>
 
 </body>
 </html>

@@ -1,0 +1,31 @@
+#mapContainer {
+  position: relative;
+}
+
+#leftPanel {
+  position: absolute;
+  top: 0;
+  width: 300px;
+  height: 800px;
+  z-index: 1;
+}
+
+#leftPanel.closed {
+  display: none;
+}
+
+#showHideToggle {
+  position: absolute;
+  top: 300px;
+  left: 0;
+  z-index: 1;
+  background-color: #f5f5f5;
+  border: 1px solid #bfbfbf;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+}
+
+.shiftedRight {
+  margin-left: 300px;
+}

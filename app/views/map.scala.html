@@ -1,10 +1,28 @@
 @(message: String)(implicit request: RequestHeader)
 
-@main("Map") {
+@stylesheets = {
+    <link href="@routes.Assets.at("stylesheets/map.css")" rel="stylesheet">
+}
 
-    <button id="showHideSidebar" class="btn btn-mini">Panel</button>
+@main("Map", stylesheets) {
+
     <div id="mapContainer">
-        <div id="mapSidebar"></div>
+        <div id="leftPanel" class="closed">
+            <div class="btn-group modeSwitcher">
+                <button name="current" class="btn active">Current</button>
+                <button name="history" class="btn">History</button>
+            </div>
+            <hr/>
+            <div id="current" class="modeControls">
+                Track current position
+            </div>
+            <div id="history" class="modeControls hide">
+                Display history
+            </div>
+        </div>
+        <span id="showHideToggle">
+            <i class="icon-chevron-left"></i><br/><i class="icon-chevron-right"></i>
+        </span>
         <div id="myMap" style="height: 800px;"></div>
     </div>
     <script src="http://api-maps.yandex.ru/2.0-stable/?load=package.full&lang=ru-RU" type="text/javascript"></script>

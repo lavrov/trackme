@@ -11,7 +11,8 @@ POST    /tracker/ogtpush/*tail      controllers.Tracker.ogtPush(tail)
 GET     /about                      controllers.Application.about
 
 # Static resources
-GET     /assets/javascript/bootstrap/$file<.+\.js>            controllers.BootstrapJsAssets.at(path="/modules/bootstrap/js", file)
+GET     /assets/javascript/bootstrap/$file<.+\.js>      controllers.BootstrapAssets.at(path="/modules/bootstrap/js", file)
+GET     /assets/img/*file                               controllers.BootstrapAssets.image(path="/modules/bootstrap/img", file)
 
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 

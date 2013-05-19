@@ -15,7 +15,7 @@ object ApplicationBuild extends Build {
 
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    playAssetsDirectories <+= baseDirectory(_ / "modules" / "bootstrap" / "js")
+    playAssetsDirectories <+= baseDirectory(_ / "modules" / "bootstrap")
   )
 
 }

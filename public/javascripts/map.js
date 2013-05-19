@@ -11,7 +11,7 @@ function init(wsUrl) {
 }
 
 function mapReady(map, wsUrl){
-    initSidebar(map);
+    initPanel(map);
 
     var mapManager = new MapManager(map);
 
@@ -30,21 +30,35 @@ function mapReady(map, wsUrl){
     }
 }
 
-function initSidebar(map) {
-    var $sidebar = $('#mapSidebar');
+function initPanel(map) {
+    var $panel = $('#leftPanel');
     var $map = $('#myMap');
-    $('#showHideSidebar').on('click', function() {
+    var $toggle = $('#showHideToggle');
+    $toggle.on('click', function() {
         if(!this['data-open']) {
-            $sidebar.show();
-            $map.css({'margin-left': '320px'});
+            $panel.removeClass('closed');
+            $map.addClass('shiftedRight');
+            $toggle.addClass('shiftedRight');
         }
         else {
-            $sidebar.hide();
-            $map.css({'margin-left': '0'});
+            $panel.addClass('closed');
+            $map.removeClass('shiftedRight');
+            $toggle.removeClass('shiftedRight');
         }
         map.container.fitToViewport();
         this['data-open'] = !this['data-open'];
     });
+    var $modeSwitcher = $panel.find('.modeSwitcher');
+    $modeSwitcher.on('click', 'button', function(event) {
+        panelModeChange(event.target.name);
+        $modeSwitcher.find('button').removeClass('active');
+        $(event.target).addClass('active');
+    })
+}
+
+function panelModeChange(mode) {
+    $('.modeControls').hide();
+    $('#'+mode).show();
 }
 
 function MapManager(map){
