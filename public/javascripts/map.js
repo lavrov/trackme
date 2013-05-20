@@ -12,9 +12,9 @@ function init(wsUrl) {
 }
 
 function mapReady(map, wsUrl){
-    initPanel(map);
-
     var mapManager = new MapManager(map);
+
+    initPanel(map, mapManager);
 
     ws = new WebSocket(wsUrl);
 
@@ -31,7 +31,7 @@ function mapReady(map, wsUrl){
     }
 }
 
-function initPanel(map) {
+function initPanel(map, mapManager) {
     var $panel = $('#leftPanel');
     var $map = $('#myMap');
     var $toggle = $('#showHideToggle');
@@ -51,15 +51,42 @@ function initPanel(map) {
     });
     var $modeSwitcher = $panel.find('.modeSwitcher');
     $modeSwitcher.on('click', 'button', function(event) {
-        panelModeChange(event.target.name);
+        panelModeChange(event.target.name, mapManager);
         $modeSwitcher.find('button').removeClass('active');
         $(event.target).addClass('active');
     })
 }
 
-function panelModeChange(mode) {
+function panelModeChange(mode, mapManager) {
     $('.modeControls').hide();
-    $('#'+mode).show();
+    var controls = $('#'+mode);
+    var isInitComplete = controls.attr('data-init');
+    if(!isInitComplete) {
+        initControls(mode, mapManager, controls);
+        controls.attr('data-init', true);
+    }
+    controls.show();
+}
+
+function initControls(mode, mapManager, $controls) {
+    if(mode == 'history'){
+        var $form = $controls.find('form');
+        $('#showHistory').on('click', function(){
+            $.ajax({
+                type : 'POST',
+                url : $form.attr('action'),
+                data : $form.serialize(),
+                dataType : "text",
+                success : function(data) {
+                    console.log(data);
+                    var points = eval(data);
+                    $.each(points, function(i, point){
+                        mapManager.appendToHistory(point);
+                    });
+                }
+            });
+        });
+    }
 }
 
 function MapManager(map){
@@ -79,14 +106,13 @@ MapManager.prototype = {
     updateCurrentPoint: function(point) {
         var self = this;
         this.currentPointCollection.each(function(placemark){
-            self.appendToHistory(placemark);
+            self.historyPointCollection.add(placemark);
         });
-        this.currentPointCollection.removeAll();
         this.currentPointCollection.add(this.pointToPlacemark(point));
     },
 
-    appendToHistory: function(placemark) {
-        this.historyPointCollection.add(placemark);
+    appendToHistory: function(point) {
+        this.historyPointCollection.add(this.pointToPlacemark(point));
     },
 
     pointToPlacemark: function(point) {

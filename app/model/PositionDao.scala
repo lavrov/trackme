@@ -10,11 +10,11 @@ import Column._
 
 object PositionDao {
   val PositionParser = (get[java.math.BigDecimal]("longitude")~get[java.math.BigDecimal]("latitude")~date("timestamp")*)
+    .map(_.map { case lng~lat~time => Position(lng, lat, time)})
 
   def all = DB.withConnection( implicit conn =>
     SQL("select * from Position")
       .as(PositionParser)
-      .map { case lng~lat~time => Position(lng, lat, time)}
   )
 
   def lastPoint = DB.withConnection( implicit conn =>
@@ -23,7 +23,15 @@ object PositionDao {
         'time -> new Date(System.currentTimeMillis() - 600000L)
       )
       .as(PositionParser)
-      .map { case lng~lat~time => Position(lng, lat, time)}
+  )
+
+  def betweenInterval(beginning: Date, end: Date) = DB.withConnection( implicit conn =>
+    SQL("select * from Position p where p.timestamp > {beginning} and p.timestamp < {end} order by p.timestamp desc")
+      .on(
+        'beginning -> beginning,
+        'end -> end
+      )
+      .as(PositionParser)
   )
 
   def savePosition(position: Position) = DB.withConnection{ implicit conn =>

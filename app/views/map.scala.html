@@ -3,6 +3,7 @@
 @stylesheets = {
     <link href="@routes.Assets.at("stylesheets/map.css")" rel="stylesheet">
 }
+@import helper.twitterBootstrap._
 
 @main("Map", stylesheets) {
 
@@ -17,7 +18,11 @@
                 Track current position
             </div>
             <div id="history" class="modeControls hide">
-                Display history
+                @helper.form(action = routes.History.postInterval){
+                    @helper.inputDate(History.timeIntervalForm("beginning"), '_label -> "Beginning")
+                    @helper.inputDate(History.timeIntervalForm("end"), '_label -> "End")
+                    <button id="showHistory" class="btn" onclick="return false;">Show</button>
+                }
             </div>
         </div>
         <span id="showHideToggle">

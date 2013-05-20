@@ -7,6 +7,7 @@ GET     /map/ws                     controllers.Map.ws
 
 GET     /tracker/push/:lng/:lat     controllers.Tracker.push(lng, lat)
 POST    /tracker/ogtpush/*tail      controllers.Tracker.ogtPush(tail)
+POST    /tracker/history            controllers.History.postInterval
 
 GET     /about                      controllers.Application.about
 
