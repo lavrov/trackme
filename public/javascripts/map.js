@@ -88,10 +88,16 @@ function initControls(mode, mapManager, $controls) {
             });
         });
     }
+    else if(mode == 'current') {
+        $controls.find('#followCurrentPoint').click(function(){
+            mapManager.followCurrentPoint();
+        });
+    }
 }
 
 function MapManager(map){
     this.map = map;
+    this.mode = "current";
     this.currentPointCollection = new ymaps.GeoObjectCollection({}, {
             preset: "twirl#greenIcon"
         }
@@ -109,7 +115,35 @@ MapManager.prototype = {
         this.currentPointCollection.each(function(placemark){
             self.historyPointCollection.add(placemark);
         });
-        this.currentPointCollection.add(this.pointToPlacemark(point));
+        var placemark = this.pointToPlacemark(point);
+        this.currentPointCollection.add(placemark);
+        if(this.mode == 'current')
+            this.followCurrentPoint();
+    },
+
+    followCurrentPoint: function() {
+        var self = this;
+        this.currentPointCollection.each(function(placemark){
+            self.moveToPoint(placemark.geometry, function() {
+                self.map.setZoom(15, {smooth: true, position: placemark.geometry});
+                var boundsChange = function(){
+                    console.log('mode switched');
+                    self.mode = 'none';
+                    self.map.events.remove('boundschange', boundsChange)
+                };
+                self.map.events.add('boundschange', boundsChange);
+            });
+        });
+    },
+
+    moveToPoint: function(point, callback) {
+        var map = this.map;
+        if(!callback) callback = function(){};
+
+        map.panTo(point.getCoordinates(), {
+            flying: true,
+            callback: callback
+        });
     },
 
     appendToHistory: function(point) {
@@ -118,6 +152,7 @@ MapManager.prototype = {
 
     clearHistory: function() {
         this.historyPointCollection.removeAll();
+        this.mode = 'history';
     },
 
     pointToPlacemark: function(point) {

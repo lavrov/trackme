@@ -10,12 +10,12 @@
     <div id="mapContainer">
         <div id="leftPanel" class="closed">
             <div class="btn-group modeSwitcher">
-                <button name="current" class="btn active">Current</button>
+                <button name="current" class="btn">Online</button>
                 <button name="history" class="btn">History</button>
             </div>
             <hr/>
-            <div id="current" class="modeControls">
-                Track current position
+            <div id="current" class="modeControls hide">
+               <button id="followCurrentPoint" class="btn">Follow object on the map</button>
             </div>
             <div id="history" class="modeControls hide">
                 @helper.form(action = routes.History.postInterval){
