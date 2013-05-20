@@ -11,10 +11,12 @@ import model.PositionDao
 object History extends Controller {
   import PositionMarshaller._
 
+  val dateFormat = "yyyy-MM-dd HH:mm"
+
   val timeIntervalForm = Form(
     tuple(
-      "beginning" -> date("yyyy-MM-dd"),
-      "end" -> date("yyyy-MM-dd")
+      "beginning" -> date(dateFormat),
+      "end" -> date(dateFormat)
     )
   )
 
