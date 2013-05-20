@@ -115,6 +115,10 @@ MapManager.prototype = {
         this.historyPointCollection.add(this.pointToPlacemark(point));
     },
 
+    clearHistory: function() {
+        this.historyPointCollection.removeAll();
+    },
+
     pointToPlacemark: function(point) {
         var date = new Date(point.time);
         var formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
