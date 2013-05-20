@@ -19,6 +19,8 @@
             </div>
             <div id="history" class="modeControls hide">
                 @helper.form(action = routes.History.postInterval){
+                    @helper.inputRadioGroup(History.timeIntervalForm("intervalType"),
+                        List("lastHour" -> "Last hour", "lastDay" -> "Last day", "custom" -> "Custom"), '_label -> "Interval")
                     @helper.inputText(History.timeIntervalForm("beginning"), '_label -> "Beginning")
                     @helper.inputText(History.timeIntervalForm("end"), '_label -> "End")
                     <button id="showHistory" class="btn" onclick="return false;">Show</button>

@@ -5,6 +5,9 @@ import play.api.libs.json.Json._
 import play.api.data.Form
 import play.api.data.Forms._
 
+import org.joda.time._
+import java.util.Date
+
 import model.PositionDao
 
 
@@ -15,21 +18,25 @@ object History extends Controller {
 
   val timeIntervalForm = Form(
     tuple(
-      "beginning" -> date(dateFormat),
-      "end" -> date(dateFormat)
+      "intervalType" -> nonEmptyText,
+      "beginning" -> optional(date(dateFormat)),
+      "end" -> optional(date(dateFormat))
     )
   )
 
   def postInterval = Action { implicit request =>
+    def result(b: Date, e: Date) = Ok(toJson(
+      PositionDao.betweenInterval(b, e)
+        .map(toJson(_))
+    ))
     timeIntervalForm.bindFromRequest.fold(
-    form => BadRequest("Incorrect form data"),
-    {
-      case (b, e) =>
-        Ok(toJson(
-          PositionDao.betweenInterval(b, e)
-            .map(toJson(_))
-        ))
-    }
-    )
+    form => BadRequest("Incorrect form data"), {
+      case ("custom", Some(b), Some(e)) => result(b, e)
+      case (intervalType, _, _) => intervalType match {
+        case "lastHour" => result(DateTime.now.minus(Duration.standardDays(1)).toDate, new Date)
+        case "lastDay" => result(DateTime.now.minusDays(1).toDate, new Date)
+      }
+      case _ => BadRequest("Incorrect form data")
+    })
   }
 }
