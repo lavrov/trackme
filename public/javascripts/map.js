@@ -79,6 +79,7 @@ function initControls(mode, mapManager, $controls) {
                 dataType : "text",
                 success : function(data) {
                     console.log(data);
+                    mapManager.clearHistory();
                     var points = eval(data);
                     $.each(points, function(i, point){
                         mapManager.appendToHistory(point);
