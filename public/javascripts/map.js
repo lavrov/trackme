@@ -71,6 +71,13 @@ function panelModeChange(mode, mapManager) {
 function initControls(mode, mapManager, $controls) {
     if(mode == 'history'){
         var $form = $controls.find('form');
+        var $customTime = $form.find('.customTime');
+        $form.find('input[name=intervalType]').change(function(){
+            if($(this).val() == 'custom')
+                $customTime.show();
+            else
+                $customTime.hide();
+        })
         $('#showHistory').on('click', function(){
             $.ajax({
                 type : 'POST',
