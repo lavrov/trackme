@@ -33,7 +33,7 @@ object History extends Controller {
     form => BadRequest("Incorrect form data"), {
       case ("custom", Some(b), Some(e)) => result(b, e)
       case (intervalType, _, _) => intervalType match {
-        case "lastHour" => result(DateTime.now.minus(Duration.standardDays(1)).toDate, new Date)
+        case "lastHour" => result(DateTime.now.minus(Duration.standardHours(1)).toDate, new Date)
         case "lastDay" => result(DateTime.now.minusDays(1).toDate, new Date)
       }
       case _ => BadRequest("Incorrect form data")
