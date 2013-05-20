@@ -5,6 +5,7 @@ function init(wsUrl) {
             zoom: 7,
             behaviors: ["default", "scrollZoom"]
         });
+        preparePreset(map);
         map.controls.add("mapTools").add("zoomControl").add("typeSelector");
         mapReady(map, wsUrl)
     })
@@ -67,7 +68,9 @@ function MapManager(map){
             preset: "twirl#greenIcon"
         }
     );
-    this.historyPointCollection = new ymaps.GeoObjectCollection({}, {});
+    this.historyPointCollection = new ymaps.GeoObjectCollection({}, {
+        preset: 'twirl#bluePoint'
+    });
     map.geoObjects.add(this.currentPointCollection);
     map.geoObjects.add(this.historyPointCollection);
 }
@@ -94,4 +97,13 @@ MapManager.prototype = {
         });
     }
 };
+
+function preparePreset(map) {
+    var template = ymaps.option.presetStorage.get('twirl#blueIcon');
+    var preset =  $.extend({}, template, {
+        iconImageHref: '/assets/images/map/blue_point.png',
+        iconImageSize: [13, 13]
+    });
+    ymaps.option.presetStorage.add('twirl#bluePoint', preset);
+}
 
