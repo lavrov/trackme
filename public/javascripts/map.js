@@ -12,26 +12,14 @@ function init(wsUrl) {
 }
 
 function mapReady(map, wsUrl){
-    var mapManager = new MapManager(map);
-
-    initPanel(map, mapManager);
-
-    ws = new WebSocket(wsUrl);
-
-    ws.onclose = function(){
-        alert('Connection lost')
-    };
-
-    ws.onmessage = function(event){
-        receiveMessage(JSON.parse(event.data))
-    };
-
-    function receiveMessage(json) {
-        mapManager.updateCurrentPoint(json)
-    }
+    var modeSwitcher = new ModeSwitcher(map, function(){
+        return new WebSocket(wsUrl);
+    });
+    initPanel(map, modeSwitcher);
+    modeSwitcher.online();
 }
 
-function initPanel(map, mapManager) {
+function initPanel(map, modeSwitcher) {
     var $panel = $('#leftPanel');
     var $map = $('#myMap');
     var $toggle = $('#showHideToggle');
@@ -51,25 +39,29 @@ function initPanel(map, mapManager) {
     });
     var $modeSwitcher = $panel.find('.modeSwitcher');
     $modeSwitcher.on('click', 'button', function(event) {
-        panelModeChange(event.target.name, mapManager);
-        $modeSwitcher.find('button').removeClass('active');
-        $(event.target).addClass('active');
-    })
+        modeSwitcher[event.target.name]();
+    });
+    modeSwitcher.events.on('modeSwitch', function(event, mode){
+        switchPanel($modeSwitcher, mode);
+    });
+    return $toggle;
 }
 
-function panelModeChange(mode, mapManager) {
+function switchPanel($modeSwitcher, mode) {
+    $modeSwitcher.find('button').removeClass('active');
+    $modeSwitcher.find('button[name='+mode.name+']').addClass('active');
     $('.modeControls').hide();
-    var controls = $('#'+mode);
+    var controls = $('#'+mode.name);
     var isInitComplete = controls.attr('data-init');
     if(!isInitComplete) {
-        initControls(mode, mapManager, controls);
+        initControls(mode.name, controls, mode.controller);
         controls.attr('data-init', true);
     }
     controls.show();
 }
 
-function initControls(mode, mapManager, $controls) {
-    if(mode == 'history'){
+function initControls(modeName, $controls, controller) {
+    if(modeName == 'history'){
         var $form = $controls.find('form');
         var $customTime = $form.find('.customTime');
         $form.find('input[name=intervalType]').change(function(){
@@ -86,95 +78,180 @@ function initControls(mode, mapManager, $controls) {
                 dataType : "text",
                 success : function(data) {
                     console.log(data);
-                    mapManager.clearHistory();
                     var points = eval(data);
-                    $.each(points, function(i, point){
-                        mapManager.appendToHistory(point);
-                    });
+                    controller.displayPoints(points);
                 }
             });
         });
     }
-    else if(mode == 'current') {
+    else if(modeName == 'online') {
         $controls.find('#followCurrentPoint').click(function(){
-            mapManager.followCurrentPoint();
+            controller.followCurrentPoint();
         });
     }
 }
 
-function MapManager(map){
-    this.map = map;
-    this.mode = "current";
-    this.currentPointCollection = new ymaps.GeoObjectCollection({}, {
-            preset: "twirl#greenIcon"
+function ModeSwitcher(map, wsFactory) {
+    var mode = new OperationMode();
+    var events = $({});
+    function deactivatePrevMode() {
+        mode.deactivate();
+        mode = undefined;
+    }
+    function activate(newMode) {
+        mode = newMode;
+        mode.activate();
+        events.trigger('modeSwitch', mode);
+        return mode;
+    }
+    var onlineMode = undefined;
+    var historyMode = undefined;
+    return {
+        events: events,
+        online: function() {
+            deactivatePrevMode();
+            if(!onlineMode) onlineMode = new OnlineMode(map, wsFactory);
+            return activate(onlineMode);
+        },
+        history: function() {
+            deactivatePrevMode();
+            if(!historyMode) historyMode = new HistoryMode(map);
+            return activate(historyMode);
         }
-    );
-    this.historyPointCollection = new ymaps.GeoObjectCollection({}, {
+    }
+}
+
+function OperationMode(){}
+OperationMode.prototype = {
+    name: "Dummy mode",
+    activate: function(){},
+    deactivate: function(){},
+    controller: undefined
+}
+
+function OnlineMode(map, wsFactory) {
+    this.map = map;
+    this.webSocketFactory = wsFactory;
+    this.ws = undefined;
+    this.currentPointCollection = new ymaps.GeoObjectCollection({}, {
+        preset: 'twirl#greenIcon'
+    });
+    this.visitedPointCollection = new ymaps.GeoObjectCollection({}, {
         preset: 'twirl#bluePoint'
     });
-    map.geoObjects.add(this.currentPointCollection);
-    map.geoObjects.add(this.historyPointCollection);
+    this.controller = new OnlineModeController(this)
+}
+OnlineMode.prototype = $.extend({}, OperationMode.prototype, {
+    name: 'online',
+    activate: function() {
+        var self = this;
+
+        this.map.geoObjects.add(this.currentPointCollection);
+        this.map.geoObjects.add(this.visitedPointCollection);
+
+        var ws = this.ws = this.webSocketFactory();
+
+        ws.onclose = function(){
+            alert('Connection lost');
+        };
+        ws.onmessage = function(event){
+            receiveMessage(JSON.parse(event.data));
+        };
+        function receiveMessage(json) {
+            self.controller.updateCurrentPoint(json);
+        }
+    },
+    deactivate: function() {
+        this.map.geoObjects.remove(this.currentPointCollection);
+        this.map.geoObjects.remove(this.visitedPointCollection);
+        if(this.ws) {
+            this.ws.onclose = function(){};
+            this.ws.close();
+        }
+    }
+});
+
+function OnlineModeController(mode) {
+    return {
+        updateCurrentPoint: function(point) {
+            mode.currentPointCollection.each(function(placemark){
+                mode.visitedPointCollection.add(placemark);
+            });
+            var placemark = pointToPlacemark(point);
+            mode.currentPointCollection.add(placemark);
+            this.followCurrentPoint();
+        },
+        followCurrentPoint: function() {
+            var self = this;
+            mode.currentPointCollection.each(function(placemark){
+                self.moveToPoint(placemark.geometry, function() {
+                    mode.map.setZoom(15, {smooth: true, position: placemark.geometry});
+                    var boundsChange = function(){
+                        console.log('mode switched');
+                        mode.map.events.remove('boundschange', boundsChange)
+                    };
+                    mode.map.events.add('boundschange', boundsChange);
+                });
+            });
+        },
+        moveToPoint: function(point, callback) {
+            var map = mode.map;
+            if(!callback) callback = function(){};
+
+            map.panTo(point.getCoordinates(), {
+                flying: true,
+                callback: callback
+            });
+        }
+    }
 }
 
-MapManager.prototype = {
-    updateCurrentPoint: function(point) {
-        var self = this;
-        this.currentPointCollection.each(function(placemark){
-            self.historyPointCollection.add(placemark);
-        });
-        var placemark = this.pointToPlacemark(point);
-        this.currentPointCollection.add(placemark);
-        if(this.mode == 'current')
-            this.followCurrentPoint();
+function HistoryMode(map) {
+    this.map = map;
+    this.pointCollection = new ymaps.GeoObjectCollection({}, {
+        preset: 'twirl#bluePoint'
+    });
+    this.controller = HistoryModeController(this);
+}
+HistoryMode.prototype = $.extend({}, OperationMode.prototype, {
+    name: 'history',
+    activate: function() {
+        this.map.geoObjects.add(this.pointCollection);
     },
-
-    followCurrentPoint: function() {
-        var self = this;
-        this.currentPointCollection.each(function(placemark){
-            self.moveToPoint(placemark.geometry, function() {
-                self.map.setZoom(15, {smooth: true, position: placemark.geometry});
-                var boundsChange = function(){
-                    console.log('mode switched');
-                    self.mode = 'none';
-                    self.map.events.remove('boundschange', boundsChange)
-                };
-                self.map.events.add('boundschange', boundsChange);
-            });
-        });
-    },
-
-    moveToPoint: function(point, callback) {
-        var map = this.map;
-        if(!callback) callback = function(){};
-
-        map.panTo(point.getCoordinates(), {
-            flying: true,
-            callback: callback
-        });
-    },
-
-    appendToHistory: function(point) {
-        this.historyPointCollection.add(this.pointToPlacemark(point));
-    },
-
-    clearHistory: function() {
-        this.historyPointCollection.removeAll();
-        this.mode = 'history';
-    },
-
-    pointToPlacemark: function(point) {
-        var date = new Date(point.time);
-        var formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        return new ymaps.Placemark([point.latitude, point.longitude],{
-            hintContent: formattedDate
-        });
+    deactivate: function() {
+        this.map.geoObjects.remove(this.pointCollection);
     }
-};
+});
+
+function HistoryModeController(mode) {
+    return {
+        displayPoints: function(points) {
+            this.clearHistory();
+            $.each(points, function(i, point){
+                mode.pointCollection.add(pointToPlacemark(point));
+            });
+            mode.map.setBounds(mode.pointCollection.getBounds());
+        },
+
+        clearHistory: function() {
+            mode.pointCollection.removeAll();
+        }
+    };
+}
+
+function pointToPlacemark(point) {
+    var date = new Date(point.time);
+    var formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return new ymaps.Placemark([point.latitude, point.longitude],{
+        hintContent: formattedDate
+    });
+}
 
 function preparePreset(map) {
     var template = ymaps.option.presetStorage.get('twirl#blueIcon');
     var preset =  $.extend({}, template, {
         iconImageHref: '/assets/images/map/blue_point.png',
+        iconImageOffset: [-6, -6],
         iconImageSize: [13, 13]
     });
     ymaps.option.presetStorage.add('twirl#bluePoint', preset);
