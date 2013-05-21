@@ -19,13 +19,14 @@ object PositionMarshaller {
   }
 }
 
-object Map extends Controller {
+object Map extends Controller with SecuredController {
   import PositionMarshaller._
 
   def positionToString(position: Position) = stringify(toJson(position))
 
-  def map = Action { implicit request =>
-    Ok(views.html.map("Map"))
+  def map = SubjectAction { implicit ctx =>
+    implicit val req = ctx.req
+    Ok(views.html.map())
   }
 
   def ws = WebSocket.using { request =>

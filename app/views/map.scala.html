@@ -1,4 +1,6 @@
-@(message: String)(implicit request: RequestHeader)
+@()(implicit ctx: Context)
+
+@import ctx._
 
 @stylesheets = {
     <link href="@routes.Assets.at("stylesheets/map.css")" rel="stylesheet">

@@ -1,4 +1,4 @@
-@(title: String, scripts: Html = Html(""))(content: Html)
+@(title: String, scripts: Html = Html(""))(content: Html)(implicit ctx: Context)
 
 <!DOCTYPE html>
 
@@ -33,7 +33,11 @@
                 <a class="brand" href="/">TrackMe</a>
                 <div class="nav-collapse collapse">
                     <p class="navbar-text pull-right">
-                            Logged in as <a href="#" class="navbar-link">Username</a>
+                        @ctx.me.fold {
+                            <a href="@routes.Auth.login" class="navbar-link">Login</a>
+                        }{ user =>
+                            Logged in as <a href="@routes.Auth.logout" class="navbar-link">@user.id</a>
+                        }
                     </p>
                     <ul class="nav">
                         <li><a href="@routes.Map.map">Map</a></li>

@@ -11,7 +11,7 @@ import java.util.Date
 import model.PositionDao
 
 
-object History extends Controller {
+object History extends Controller with SecuredController {
   import PositionMarshaller._
 
   val dateFormat = "yyyy-MM-dd HH:mm"
@@ -24,7 +24,8 @@ object History extends Controller {
     )
   )
 
-  def postInterval = Action { implicit request =>
+  def postInterval = SubjectAction { implicit context =>
+    import context._
     def result(b: Date, e: Date) = Ok(toJson(
       PositionDao.betweenInterval(b, e)
         .map(toJson(_))
