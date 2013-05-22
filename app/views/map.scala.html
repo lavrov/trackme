@@ -3,7 +3,6 @@
 @stylesheets = {
     <link href="@routes.Assets.at("stylesheets/map.css")" rel="stylesheet">
 }
-@import helper.twitterBootstrap._
 
 @main("Map", stylesheets) {
     @layout.fluid {
@@ -19,8 +18,18 @@
             </div>
             <div id="history" class="modeControls hide">
                 @helper.form(action = routes.History.postInterval){
-                    @helper.inputRadioGroup(History.timeIntervalForm("intervalType"),
-                        List("lastHour" -> "Last hour", "lastDay" -> "Last day", "custom" -> "Custom"), '_label -> "Interval")
+                    <label class="radio">
+                        <input type="radio" name="intervalType" value="lastHour" checked="checked">
+                            Last hour
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="intervalType" value="lastDay">
+                            Last day
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="intervalType" value="custom">
+                            Custom
+                    </label>
                     @helper.inputText(History.timeIntervalForm("beginning"), '_label -> "Beginning", '_class -> "customTime hide")
                     @helper.inputText(History.timeIntervalForm("end"), '_label -> "End", '_class -> "customTime hide")
                     <button id="showHistory" class="btn" onclick="return false;">Show</button>
