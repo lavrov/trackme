@@ -10,8 +10,7 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     jdbc,
-    anorm,
-    "be.objectify" %% "deadbolt-scala" % "2.1-RC2"
+    anorm
   )
 
 
