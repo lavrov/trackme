@@ -5,3 +5,29 @@ body {
 .sidebar-nav {
     padding: 9px 0;
 }
+
+.callout.hero-unit {
+    background: -webkit-gradient(linear, left top, left bottom, from(rgb(255, 255, 255)), to(rgba(255, 255, 255, 0)));
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+.front-bg {
+    position: fixed;
+    top: 0;
+    z-index: -1;
+    width: 200%;
+    height: 200%;
+    left: -50%;
+    background: #000;
+}
+
+.front-bg img {
+    display: block;
+    margin: auto;
+    min-width: 50%;
+    min-height: 50%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}

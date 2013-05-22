@@ -6,7 +6,7 @@
 @import helper.twitterBootstrap._
 
 @main("Map", stylesheets) {
-
+    @layout.fluid {
     <div id="mapContainer">
         <div id="leftPanel" class="closed">
             <div class="btn-group modeSwitcher">
@@ -37,4 +37,5 @@
     <script type="text/javascript">
         init("@routes.Map.ws().webSocketURL()")
     </script>
+    }
 }

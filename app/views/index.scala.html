@@ -1,7 +1,14 @@
 @(implicit req: Request[_])
 @main("Welcome to Play 2.1") {
-
-    @* @play20.welcome(message) *@
-    <h2>TrackMe!</h2>
-    
+     @layout.fixed {
+        <div class="callout hero-unit">
+            <h1>TrackMe!</h1>
+            <p>
+                <abbr>GPS</abbr> tracking system
+            </p>
+        </div>
+        <div class="front-bg">
+            <img class="front-image" src="@routes.Assets.at("images/bg.png")"/>
+        </div>
+     }
 }
