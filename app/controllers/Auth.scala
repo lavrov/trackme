@@ -29,11 +29,11 @@ object Auth extends Controller {
       OpenID.verifiedId map { info =>
         val email = info.attributes("email")
         val sessionId = createSession(email)
-        Logger.info(s"New session: $sessionId")
+        Logger.debug(s"New session: $email, id=$sessionId")
         Redirect(routes.Map.map).withSession("sessionId" -> sessionId)
       } recover {
         case t =>
-          Logger.info("Auth rejected")
+          Logger.error(s"Auth rejected: $t")
           Redirect(routes.Application.index)
       }
     )

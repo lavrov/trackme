@@ -12,11 +12,13 @@ object Security {
   }
 
   def createSession(email: String) = DB.withConnection { implicit conn =>
-    SQL("insert input Session values ({id}, {email})")
+    val id = UUID.randomUUID.toString
+    SQL("insert into Session values ({id}, {email})")
     .on (
-      'id -> UUID.randomUUID.toString,
+      'id -> id,
       'email -> email
-    ).executeInsert(sessionParser single).id
+    ).execute()
+    id
   }
 
   def deleteSession(sessionId: String) = DB.withConnection { implicit conn =>
