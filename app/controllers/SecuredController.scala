@@ -1,6 +1,6 @@
 package controllers
 
-import Imports._
+import RequestHelper._
 import play.api.mvc._
 import model.security.User
 

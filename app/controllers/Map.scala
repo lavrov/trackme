@@ -6,6 +6,7 @@ import play.api.libs.json.Json._
 import model.{PositionDao, Position, ObjectTracker}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Writes}
+import RequestHelper._
 
 object PositionMarshaller {
   implicit object PositionWrites extends Writes[Position] {
@@ -22,21 +23,23 @@ object PositionMarshaller {
 object Map extends SecuredController {
   import PositionMarshaller._
 
+  private val makeString = Enumeratee.map[Position](positionToString)
+
   def positionToString(position: Position) = stringify(toJson(position))
 
   def map = AuthAction { implicit req => _ =>
     Ok(views.html.map())
   }
 
-  def ws = WebSocket.using { request =>
+  def ws = WebSocket.using { implicit request =>
     Logger.info("WebSocket connected")
-
+    val user = loggedInUser.get
     val in = Iteratee.consume[String]().mapDone( _ =>
       Logger.info("WebSocket disconnected")
     )
 
-    val out = Enumerator(PositionDao.lastPoint: _*) >- ObjectTracker.enumerator &> Enumeratee.map[Position](positionToString)
-
+    val out = Enumerator(PositionDao.forUser(user.id).lastPoint: _*) >-
+      ObjectTracker.enumerator &> Enumeratee.filter[Position](_.userId == user.id) &> makeString
     (in, out)
   }
 }

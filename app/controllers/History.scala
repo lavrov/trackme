@@ -24,9 +24,9 @@ object History extends SecuredController {
     )
   )
 
-  def postInterval = AuthAction { implicit req => _ =>
+  def postInterval = AuthAction { implicit req => user =>
     def result(b: Date, e: Date) = Ok(toJson(
-      PositionDao.betweenInterval(b, e)
+      PositionDao.forUser(user.id).betweenInterval(b, e)
         .map(toJson(_))
     ))
     timeIntervalForm.bindFromRequest.fold(

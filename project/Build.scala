@@ -17,7 +17,7 @@ object ApplicationBuild extends Build {
   val main = play.Project(appName, appVersion, appDependencies).settings(
     resolvers += Resolver.url("Objectify Play Repository", url("http://schaloner.github.com/releases/"))(Resolver.ivyStylePatterns),
     playAssetsDirectories <+= baseDirectory(_ / "modules" / "bootstrap"),
-    templatesImport ++= Seq("controllers.Imports._")
+    templatesImport ++= Seq("controllers.RequestHelper._")
   )
 
 }
