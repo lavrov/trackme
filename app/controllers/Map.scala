@@ -19,13 +19,12 @@ object PositionMarshaller {
   }
 }
 
-object Map extends Controller with SecuredController {
+object Map extends SecuredController {
   import PositionMarshaller._
 
   def positionToString(position: Position) = stringify(toJson(position))
 
-  def map = SubjectAction { implicit ctx =>
-    implicit val req = ctx.req
+  def map = AuthAction { implicit req => _ =>
     Ok(views.html.map())
   }
 
