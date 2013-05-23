@@ -7,10 +7,6 @@ import anorm._
 import SqlParser._
 
 object TrackingPermissionDao {
-  private val parser = str("subject")~str("object") map {
-    case obj~subject => TrackingPermission(subject, obj)
-  }
-
   def create(p: TrackingPermission) = DB.withConnection( implicit conn =>
     SQL("insert into TrackingPermission values({subject}, {object})").on('subject -> p.subject, 'object -> p.obj).execute()
   )
