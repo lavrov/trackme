@@ -3,10 +3,11 @@ package controllers
 import play.api.mvc._
 import play.api.libs.iteratee.{Enumerator, Enumeratee, Iteratee}
 import play.api.libs.json.Json._
-import model.{PositionDao, Position, ObjectTracker}
+import model._
 import play.api.Logger
 import play.api.libs.json.{JsValue, Writes}
 import RequestHelper._
+import model.Position
 
 object PositionMarshaller {
   implicit object PositionWrites extends Writes[Position] {
@@ -38,8 +39,10 @@ object Map extends SecuredController {
       Logger.info("WebSocket disconnected")
     )
 
+    val mayTrack = Permissions.forUser(user.id).mayTrack.toSet
+
     val out = Enumerator(PositionDao.forUser(user.id).lastPoint: _*) >-
-      ObjectTracker.enumerator &> Enumeratee.filter[Position](_.userId == user.id) &> makeString
+      ObjectTracker.enumerator &> Enumeratee.filter[Position](p => mayTrack contains p.userId) &> makeString
     (in, out)
   }
 }

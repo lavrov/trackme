@@ -1,0 +1,26 @@
+@(permitTrackingMeTo: List[String], mayTrack: List[String])(implicit req: Request[_])
+
+@userList(list: List[String]) = {
+    <ul>
+        @for(user <- list){
+           <li>@user</li>
+        }
+    </ul>
+}
+
+@scripts = {
+    <script src="@routes.Assets.at("javascripts/settings.js")" type="text/javascript"></script>
+}
+
+@main("Settings", scripts) {
+    @layout.fixed {
+        <h2>I permit tracking me</h2>
+        @helper.form(action=Call("GET", "/settings/permission/add"), 'name -> "grantPermission", 'class -> "form-inline") {
+            <input type="text" name="subject" placeholder="email" value="">
+            <button class="btn" type="submit">Add</button>
+        }
+        @userList(permitTrackingMeTo)
+        <h2>I may track</h2>
+        @userList(mayTrack)
+    }
+}
