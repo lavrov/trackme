@@ -13,6 +13,7 @@ object ApplicationBuild extends Build {
     anorm
   )
 
+  scalacOptions += "-feature"
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     resolvers += Resolver.url("Objectify Play Repository", url("http://schaloner.github.com/releases/"))(Resolver.ivyStylePatterns),
