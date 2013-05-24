@@ -7,8 +7,8 @@ import play.api.Logger
 
 object Tracker extends Controller {
 
-  def push(longitude: String, latitude: String) = Action {
-    ObjectTracker.broadcaster.push(Position(BigDecimal(longitude), BigDecimal(latitude), new Date, "lavrovvv@gmail.com"))
+  def push(longitude: String, latitude: String) = Action { implicit req =>
+    ObjectTracker.broadcaster.push(Position(BigDecimal(longitude), BigDecimal(latitude), new Date, req.getQueryString("object") getOrElse "lavrovvv@gmail.com"))
     Ok("Position updated")
   }
 

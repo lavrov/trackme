@@ -10,6 +10,8 @@ GET     /map/ws                     controllers.Map.ws
 GET     /settings                   controllers.Settings.settings
 GET     /settings/permission/add   controllers.Settings.addPermission(subject)
 
+GET     /state                      controllers.StateController.get
+
 GET     /tracker/push/:lng/:lat     controllers.Tracker.push(lng, lat)
 POST    /tracker/ogtpush/*tail      controllers.Tracker.ogtPush(tail)
 POST    /tracker/history            controllers.History.postInterval

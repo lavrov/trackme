@@ -8,7 +8,7 @@ import SqlParser._
 
 object TrackingPermissionDao {
   def create(p: TrackingPermission) = DB.withConnection( implicit conn =>
-    SQL("insert into TrackingPermission values({subject}, {object})").on('subject -> p.subject, 'object -> p.obj).execute()
+    SQL("insert into TrackingPermission (subject, object) values({subject}, {object})").on('subject -> p.subject, 'object -> p.obj).execute()
   )
 
   def delete(p: TrackingPermission) = DB.withConnection( implicit conn =>
@@ -21,6 +21,10 @@ object TrackingPermissionDao {
 
   def byObject(obj: String) = DB.withConnection( implicit conn =>
     SQL("select t.subject from TrackingPermission t where t.object = {object}").on('object -> obj).as(scalar[String]*)
+  )
+
+  def readId(subject: String, obj: String) = DB.withConnection( implicit conn =>
+    SQL("select p.id from TrackingPermission p where p.subject = {s} and p.object = {o}").onParams(subject, obj).as(scalar[String] singleOpt)
   )
 }
 

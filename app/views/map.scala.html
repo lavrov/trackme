@@ -1,7 +1,15 @@
-@()(implicit req: Request[_])
+@(mayTrack: List[String], currentObject: Option[String])(implicit req: Request[_])
 
 @stylesheets = {
     <link href="@routes.Assets.at("stylesheets/map.css")" rel="stylesheet">
+}
+
+@trackingObjectToggle = {
+    <form @currentObject.map {obj => data-checked="@obj"}>
+    @for(obj <- mayTrack) {
+        <label class="radio"><input type="radio" name="trackingObject" value="@obj"> @obj</label>
+    }
+    </form>
 }
 
 @main("Map", stylesheets) {
@@ -14,7 +22,7 @@
             </div>
             <hr/>
             <div id="online" class="modeControls hide">
-               <button id="followCurrentPoint" class="btn">Follow object on the map</button>
+                @trackingObjectToggle
             </div>
             <div id="history" class="modeControls hide">
                 @helper.form(action = routes.History.postInterval){

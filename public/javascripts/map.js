@@ -1,4 +1,6 @@
 function init(wsUrl) {
+    var mapReady = $.Deferred(),
+        stateReady = $.ajax('/state', {dataType : 'json'});
     ymaps.ready(function(){
         var map = new ymaps.Map('myMap', {
             center: [55.76, 37.64],
@@ -7,13 +9,27 @@ function init(wsUrl) {
         });
         preparePreset(map);
         map.controls.add("mapTools").add("zoomControl").add("typeSelector");
-        mapReady(map, wsUrl)
+        mapReady.resolve(map);
     })
+    $.when(mapReady, stateReady.promise()).done(function(map, state){
+        pageReady(map, prepareState(state[0]), wsUrl);
+    });
 }
 
-function mapReady(map, wsUrl){
-    var modeSwitcher = new ModeSwitcher(map, function(){
-        return new WebSocket(wsUrl);
+function prepareState(state) {
+    state.currentObject = state.currentObject || undefined;
+    return $.extend(state, {
+        events: $({}),
+        changeObject: function(object) {
+            this.currentObject = object;
+            this.events.trigger("changeObject", object);
+        }
+    });
+}
+
+function pageReady(map, state, wsUrl){
+    var modeSwitcher = new ModeSwitcher(map, state, function(trackingObject){
+        return new WebSocket(wsUrl+'?trackingObject='+trackingObject);
     });
     initPanel(map, modeSwitcher);
     modeSwitcher.online();
@@ -54,14 +70,14 @@ function switchPanel($modeSwitcher, mode) {
     var controls = $('#'+mode.name);
     var isInitComplete = controls.attr('data-init');
     if(!isInitComplete) {
-        initControls(mode.name, controls, mode.controller);
+        initControls(mode, controls, mode.controller);
         controls.attr('data-init', true);
     }
     controls.show();
 }
 
-function initControls(modeName, $controls, controller) {
-    if(modeName == 'history'){
+function initControls(mode, $controls, controller) {
+    if(mode.name == 'history'){
         var $form = $controls.find('form');
         var $customTime = $form.find('.customTime');
         $form.find('input[name=intervalType]').change(function(){
@@ -84,14 +100,17 @@ function initControls(modeName, $controls, controller) {
             });
         });
     }
-    else if(modeName == 'online') {
-        $controls.find('#followCurrentPoint').click(function(){
-            controller.followCurrentPoint();
+    else if(mode.name == 'online') {
+        $controls.find('input[name=trackingObject]').change(function(){
+            mode.turnOnTracking($(this).val());
+        });
+        $.each(mode.trackingDataPresenters, function(object){
+            $controls.find('input[value="'+object+'"]').attr('checked', 'checked');
         });
     }
 }
 
-function ModeSwitcher(map, wsFactory) {
+function ModeSwitcher(map, state, wsFactory) {
     var mode = new OperationMode();
     var events = $({});
     function deactivatePrevMode() {
@@ -110,7 +129,7 @@ function ModeSwitcher(map, wsFactory) {
         events: events,
         online: function() {
             deactivatePrevMode();
-            if(!onlineMode) onlineMode = new OnlineMode(map, wsFactory);
+            if(!onlineMode) onlineMode = new OnlineMode(map, state, wsFactory);
             return activate(onlineMode);
         },
         history: function() {
@@ -129,9 +148,40 @@ OperationMode.prototype = {
     controller: undefined
 }
 
-function OnlineMode(map, wsFactory) {
+function OnlineMode(map, state, wsFactory) {
     this.map = map;
+    this.wsFactory = wsFactory;
+    this.state = state;
+    this.trackingDataPresenters = {};
+    this.events = $({});
+}
+OnlineMode.prototype = $.extend({}, OperationMode.prototype, {
+    name: 'online',
+    activate: function(){
+        if(this.state.currentObject)
+            this.turnOnTracking(this.state.currentObject);
+    },
+    deactivate: function(){
+        $.each(this.trackingDataPresenters, function(i, item){
+            item.deactivate();
+        });
+    },
+
+    turnOnTracking: function(object){
+        this.deactivate();
+        var presenter = this.trackingDataPresenters[object] || (this.trackingDataPresenters[object] = new TrackingDataPresenter(this, object, this.wsFactory));
+        presenter.activate();
+        this.state.currentObject = presenter.name;
+    }
+});
+
+function TrackingDataPresenter(mode, trackingObject, wsFactory) {
+    this.mode = mode;
+    this.status = 'notActive';
+    this.map = mode.map;
     this.webSocketFactory = wsFactory;
+    this.name = trackingObject;
+    this.trackingObject = trackingObject;
     this.ws = undefined;
     this.currentPointCollection = new ymaps.GeoObjectCollection({}, {
         preset: 'twirl#greenIcon'
@@ -139,17 +189,16 @@ function OnlineMode(map, wsFactory) {
     this.visitedPointCollection = new ymaps.GeoObjectCollection({}, {
         preset: 'twirl#bluePoint'
     });
-    this.controller = new OnlineModeController(this)
 }
-OnlineMode.prototype = $.extend({}, OperationMode.prototype, {
-    name: 'online',
+TrackingDataPresenter.prototype = $.extend({}, OperationMode.prototype, {
     activate: function() {
+        if(this.status == 'active') return;
         var self = this;
 
         this.map.geoObjects.add(this.currentPointCollection);
         this.map.geoObjects.add(this.visitedPointCollection);
 
-        var ws = this.ws = this.webSocketFactory();
+        var ws = this.ws = this.webSocketFactory(this.trackingObject);
 
         ws.onclose = function(){
             alert('Connection lost');
@@ -158,53 +207,55 @@ OnlineMode.prototype = $.extend({}, OperationMode.prototype, {
             receiveMessage(JSON.parse(event.data));
         };
         function receiveMessage(json) {
-            self.controller.updateCurrentPoint(json);
+            self.updateCurrentPoint(json);
         }
+        this.mode.events.trigger('turnOn', this.name);
+        this.status = 'active';
+        console.log("Tracking activated: "+this.name);
     },
     deactivate: function() {
+        if(this.status == 'notActive') return;
         this.map.geoObjects.remove(this.currentPointCollection);
         this.map.geoObjects.remove(this.visitedPointCollection);
         if(this.ws) {
             this.ws.onclose = function(){};
             this.ws.close();
         }
+        this.status = 'notActive';
+    },
+
+    updateCurrentPoint: function(point) {
+        var self = this;
+        this.currentPointCollection.each(function(placemark){
+            self.visitedPointCollection.add(placemark);
+        });
+        var placemark = pointToPlacemark(point);
+        this.currentPointCollection.add(placemark);
+        this.followCurrentPoint();
+    },
+    followCurrentPoint: function() {
+        var self = this;
+        this.currentPointCollection.each(function(placemark){
+            self.moveToPoint(placemark.geometry, function() {
+                self.map.setZoom(15, {smooth: true, position: placemark.geometry});
+                var boundsChange = function(){
+                    console.log('mode switched');
+                    self.map.events.remove('boundschange', boundsChange)
+                };
+                self.map.events.add('boundschange', boundsChange);
+            });
+        });
+    },
+    moveToPoint: function(point, callback) {
+        var map = this.map;
+        if(!callback) callback = function(){};
+
+        map.panTo(point.getCoordinates(), {
+            flying: true,
+            callback: callback
+        });
     }
 });
-
-function OnlineModeController(mode) {
-    return {
-        updateCurrentPoint: function(point) {
-            mode.currentPointCollection.each(function(placemark){
-                mode.visitedPointCollection.add(placemark);
-            });
-            var placemark = pointToPlacemark(point);
-            mode.currentPointCollection.add(placemark);
-            this.followCurrentPoint();
-        },
-        followCurrentPoint: function() {
-            var self = this;
-            mode.currentPointCollection.each(function(placemark){
-                self.moveToPoint(placemark.geometry, function() {
-                    mode.map.setZoom(15, {smooth: true, position: placemark.geometry});
-                    var boundsChange = function(){
-                        console.log('mode switched');
-                        mode.map.events.remove('boundschange', boundsChange)
-                    };
-                    mode.map.events.add('boundschange', boundsChange);
-                });
-            });
-        },
-        moveToPoint: function(point, callback) {
-            var map = mode.map;
-            if(!callback) callback = function(){};
-
-            map.panTo(point.getCoordinates(), {
-                flying: true,
-                callback: callback
-            });
-        }
-    }
-}
 
 function HistoryMode(map) {
     this.map = map;

@@ -3,9 +3,10 @@
 # --- !Ups
 
 create table TrackingPermission (
+  id                                 varchar(255) default RANDOM_UUID() not null,
   subject                            varchar(255) not null,
   object                             varchar(255) not null,
-  constraint TrackingPermission_PK   primary key (subject, object)
+  constraint TrackingPermission_PK   unique (subject, object)
 );
 
 # --- !Downs

@@ -28,21 +28,28 @@ object Map extends SecuredController {
 
   def positionToString(position: Position) = stringify(toJson(position))
 
-  def map = AuthAction { implicit req => _ =>
-    Ok(views.html.map())
+  def map = AuthAction { implicit req => user =>
+    Ok(views.html.map(Permissions.forUser(user.id).mayTrack, State.TrackingObject.get(user)))
   }
 
   def ws = WebSocket.using { implicit request =>
-    Logger.info("WebSocket connected")
     val user = loggedInUser.get
-    val in = Iteratee.consume[String]().mapDone( _ =>
-      Logger.info("WebSocket disconnected")
-    )
+    val trackingObject = request.getQueryString("trackingObject").get
+    if(model.State.TrackingObject.set(user, trackingObject)) {
 
-    val mayTrack = Permissions.forUser(user.id).mayTrack.toSet
+      val in = Iteratee.consume[String]().mapDone( _ =>
+        Logger.info("WebSocket disconnected")
+      )
 
-    val out = Enumerator(PositionDao.forUser(user.id).lastPoint: _*) >-
-      ObjectTracker.enumerator &> Enumeratee.filter[Position](p => mayTrack contains p.userId) &> makeString
-    (in, out)
+      val out = Enumerator(PositionDao.forUser(trackingObject).lastPoint: _*) >-
+        ObjectTracker.enumerator &> Enumeratee.filter[Position](_.userId == trackingObject) &> makeString
+
+      Logger.info("WebSocket connected")
+
+      (in, out)
+    }
+    else {
+      throw new Exception(s"You may not track $trackingObject")
+    }
   }
 }

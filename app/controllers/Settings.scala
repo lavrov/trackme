@@ -1,6 +1,6 @@
 package controllers
 
-import model.Permissions
+import model.{Permissions, State}
 
 object Settings extends SecuredController {
   def settings = AuthAction { implicit req => user =>
