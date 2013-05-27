@@ -4,17 +4,21 @@ import dao.{Position, PositionDao}
 import play.api.libs._
 import iteratee.{Iteratee, Concurrent}
 import akka.actor.{Props, Actor}
+import concurrent.Execution.Implicits._
 
 object ObjectTracker {
-  import play.api.Play.current
 
   val (enumerator, broadcaster) = Concurrent.broadcast[Position]
 
   enumerator(
-    Iteratee.foreach[Position](PositionDao.savePosition(_))
+    Iteratee.foreach[Position]{ p =>
+      Notifications.checkAndNotify(p)
+      PositionDao.savePosition(p)
+    }
   )
 
-  ObjectImitation.start(concurrent.Akka.system.actorOf(Props[Tracker]))
+  //import play.api.Play.current
+  //ObjectImitation.start(concurrent.Akka.system.actorOf(Props[Tracker]))
 
   class Tracker extends Actor {
     def receive = {
@@ -23,4 +27,5 @@ object ObjectTracker {
   }
 
   case class Push(position: Position)
+
 }
