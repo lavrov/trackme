@@ -1,5 +1,6 @@
 package model
 
+import dao.TrackingPermissionDao
 import play.api._
 import db.DB
 import Play.current

@@ -1,9 +1,10 @@
 package controllers
 
 import play.api.mvc.{Result, Action, Controller}
-import model.{Position, ObjectTracker}
+import model.{ObjectTracker}
 import java.util.Date
 import play.api.Logger
+import model.dao.Position
 
 object Tracker extends Controller {
 

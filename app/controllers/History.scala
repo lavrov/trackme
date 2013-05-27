@@ -8,7 +8,7 @@ import play.api.data.Forms._
 import org.joda.time._
 import java.util.Date
 
-import model.PositionDao
+import model.dao.PositionDao
 
 
 object History extends SecuredController {

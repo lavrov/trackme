@@ -1,4 +1,4 @@
-package model
+package model.dao
 
 import play.api._
 import db.DB
@@ -26,16 +26,6 @@ object TrackingPermissionDao {
   def readId(subject: String, obj: String) = DB.withConnection( implicit conn =>
     SQL("select p.id from TrackingPermission p where p.subject = {s} and p.object = {o}").onParams(subject, obj).as(scalar[String] singleOpt)
   )
-}
-
-object Permissions {
-  import TrackingPermissionDao._
-  def forUser(userId: String) = new {
-    def mayTrack = bySubject(userId)
-    def permitTrackingTo = byObject(userId)
-    def grantPermissionTo(subject: String) = create(TrackingPermission(subject, userId))
-    def withdrawPermissionFrom(subject: String) = delete(TrackingPermission(subject, userId))
-  }
 }
 
 case class TrackingPermission(subject: String, obj: String)

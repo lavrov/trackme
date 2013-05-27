@@ -4,10 +4,10 @@ import play.api.mvc._
 import play.api.libs.iteratee.{Enumerator, Enumeratee, Iteratee}
 import play.api.libs.json.Json._
 import model._
+import dao.{Position, PositionDao}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Writes}
 import RequestHelper._
-import model.Position
 
 object PositionMarshaller {
   implicit object PositionWrites extends Writes[Position] {

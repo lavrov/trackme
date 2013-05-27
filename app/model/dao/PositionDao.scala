@@ -1,4 +1,4 @@
-package model
+package model.dao
 
 import play.api.db.DB
 import play.api.Play.current
@@ -53,6 +53,10 @@ object PositionDao {
           )
           .as(PositionParser)
       )
+
+      def deleteAll = DB.withConnection { implicit conn =>
+        SQL("delete from Position where userId = {userId}").onParams(userId).execute()
+      }
   }
 }
 
