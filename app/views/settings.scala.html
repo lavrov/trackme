@@ -22,5 +22,22 @@
         @userList(permitTrackingMeTo)
         <h2>I may track</h2>
         @userList(mayTrack)
+        <h2>Notifications</h2>
+        @helper.form(action=Call("POST", "/settings/notification/add"), 'name -> "addNotification", 'class -> "form-horizontal") {
+            <label for="name"></label>
+            <input type="text" name="name" placeholder="name"/>
+            <label for="trackingObject"></label>
+            <input type="text" name="trackingObject" placeholder="Tracing object"/>
+            <label for="leftTopLongitude"></label>
+            <input type="text" name="leftTopLongitude" placeholder="Left top point longitude"/>
+            <label for="leftTopLatitude"></label>
+            <input type="text" name="leftTopLatitude" placeholder="Left top point latitude"/>
+            <label for="rightBottomLatitude"></label>
+            <input type="text" name="rightBottomLatitude" placeholder="Right bottom longitude"/>
+            <label for="rightBottomLatitude"></label>
+            <input type="text" name="rightBottomLatitude" placeholder="Right bottom point latitude"/>
+            <label></label>
+            <button class="btn" type="submit">Add</button>
+        }
     }
 }

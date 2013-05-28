@@ -7,8 +7,9 @@ GET     /                           controllers.Application.index
 GET     /map                        controllers.Map.map
 GET     /map/ws                     controllers.Map.ws
 
-GET     /settings                   controllers.Settings.settings
-GET     /settings/permission/add   controllers.Settings.addPermission(subject)
+GET     /settings                   controllers.settings.settings
+GET     /settings/permission/add   controllers.settings.addPermission(subject)
+POST    /settings/notification/add controllers.settings.notifications.add
 
 GET     /state                      controllers.StateController.get
 

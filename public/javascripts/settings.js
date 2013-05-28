@@ -2,23 +2,26 @@ $(function(){
     processForm({
         grantPermission: function(object){
           location.reload();
+        },
+        addNotification: function(responseBody) {
+            console.log(responseBody);
         }
     });
 });
 
 function processForm(successCallbacks) {
     $('form').each(function(){
-        var action = this.action;
-        var formName = this.name;
         var form = $(this);
+        var formName = form.attr('name');
+        var successCallback = successCallbacks[formName] ? successCallbacks[formName] : alert('Form submission callback undefined: ' + formName);
         var submit = form.find('button[type=submit]');
         submit.click(function(){
             $.ajax({
-                type : 'GET',
-                url : action,
+                type : form.attr('method'),
+                url : form.attr('action'),
                 data : form.serialize(),
                 dataType : "text",
-                success : successCallbacks[formName]
+                success : successCallback
             });
             return false;
         });
