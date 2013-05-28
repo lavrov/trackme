@@ -3,6 +3,7 @@ package model
 import dao.Position
 import play.api._
 import concurrent._
+import java.util.Date
 
 object Notifications {
   implicit def toPoint(position: Position) = Point(position.longitude, position.latitude)
@@ -14,6 +15,7 @@ object Notifications {
   def notifyUsers(containment: Containment) =
     for {
       area <- containment.areas
+        if area.lastAppearance.map(lastDate => containment.position.timestamp.getTime - lastDate.getTime > 3600000) getOrElse true
     } AppMailer.send(
       sender = "lavrovvv@gmail.com",
       recipient = area.interestedUser,
@@ -24,17 +26,20 @@ object Notifications {
   def check(position: Position) = {
     notificationsArea(position.userId).filter(_.area.contains(position)) match {
       case Nil => None
-      case areaList => Some {
-        Containment(position, areaList)
-      }
+      case areaList =>
+        updateLastAppearance(areaList, position)
+        Some {Containment(position, areaList)}
     }
   }
+
+  def updateLastAppearance(areas: List[NotificationArea], position: Position) {}
 
   def notificationsArea(userId: String): List[NotificationArea] = List(
     NotificationArea(
       "Moscow",
       "lavrovvv@gmail.com",
       "icartracker.lvv@gmail.com",
+      Some(new Date),
       Rectangle(Point(37.303187, 55.911117), Point(37.903315, 55.57724))
     )
   )
@@ -53,7 +58,7 @@ object AppMailer {
 
 case class Point(longitude: BigDecimal, latitude: BigDecimal)
 
-case class NotificationArea(name: String, interestedUser: String, trackedUser: String, area: Area)
+case class NotificationArea(name: String, interestedUser: String, trackedUser: String, lastAppearance: Option[Date], area: Area)
 
 case class Containment(position: Position, areas: List[NotificationArea])
 
