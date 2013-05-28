@@ -15,7 +15,7 @@ object Notifications {
   def notifyUsers(containment: Containment) =
     for {
       area <- containment.areas
-        if area.lastAppearance.map(lastDate => containment.position.timestamp.getTime - lastDate.getTime > 3600000) getOrElse true
+        if area.lastAppearance.map(checkIfAnHourElapsed(_, containment.position.timestamp)) getOrElse true
     } AppMailer.send(
       sender = "lavrovvv@gmail.com",
       recipient = area.interestedUser,
@@ -31,6 +31,8 @@ object Notifications {
         Some {Containment(position, areaList)}
     }
   }
+
+  def checkIfAnHourElapsed(from: Date, to: Date) = to.getTime - from.getTime > 3600000
 
   def updateLastAppearance(areas: List[NotificationArea], position: Position) {}
 
