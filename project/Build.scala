@@ -15,7 +15,7 @@ object ApplicationBuild extends Build {
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    scalacOptions += "-feature",
+    scalacOptions += "-language:_",
     resolvers += Resolver.url("Objectify Play Repository", url("http://schaloner.github.com/releases/"))(Resolver.ivyStylePatterns),
     playAssetsDirectories <+= baseDirectory(_ / "modules" / "bootstrap"),
     templatesImport ++= Seq("controllers.RequestHelper._")

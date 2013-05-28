@@ -28,7 +28,7 @@ object NotificationAreaDao {
     case id~name~interestedUser~trackedObject~lastAppearance~ltLong~ltLat~rbLong~rbLat =>
       NotificationArea(Some(id), name, interestedUser, trackedObject, lastAppearance,
         Rectangle(
-          Point(ltLong, ltLat), Point(rbLong, rbLat)
+          Point(ltLong, ltLat), Point(ltLong, ltLat)
         )
       )
   }
@@ -41,22 +41,25 @@ object NotificationAreaDao {
     SQL(s"update $table set lastAppearance = {date} where id = {id}").onParams(date, id).executeUpdate()
   )
 
-  def create(area: NotificationArea): Unit = DB.withConnection(implicit conn =>
+  def create(area: NotificationArea) = DB.withConnection(implicit conn =>
     area.area match {
       case Rectangle(Point(ltLong, ltLat), Point(rbLong, rbLat)) =>
-        SQL(s"insert into $table values({1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})")
+        val id = area.id getOrElse UUID.randomUUID.toString
+        SQL(s"insert into $table values({id}, {name}, {iu}, {to}, {la}, {ltLng}, {ltLat}, {rbLng}, {rbLat})")
           .onParams(
-            area.id getOrElse UUID.randomUUID.toString,
+            id,
             area.name,
             area.interestedUser,
             area.trackedObject,
             area.lastAppearance,
-            ltLong, ltLat,
-            rbLong, rbLat
+            ltLong.bigDecimal, ltLat.bigDecimal,
+            rbLong.bigDecimal, rbLat.bigDecimal
         )
         .execute()
+        Some(id)
       case area =>
         Logger.error("Cant save area type " + area.getClass.getSimpleName)
+        None
     }
   )
 }
