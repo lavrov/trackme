@@ -31,6 +31,8 @@ object Notifications {
     NotificationAreaDao.byTrackedUser(position.userId).filter(_.area.contains(position)) match {
       case Nil => None
       case areaList =>
+        val userToArea = areaList.map(a => a.trackedObject -> a.name).mkString(", ")
+        Logger.info(s"Containment found: $userToArea")
         areaList.map(_.id)
           .collect {case Some(id) => id}
           .foreach(NotificationAreaDao.updateLastAppearance(_, position.timestamp))

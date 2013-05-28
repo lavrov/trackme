@@ -15,7 +15,7 @@ package object notifications extends SecuredController {
       "trackingObject" -> nonEmptyText,
       "leftTopLongitude" -> bigDecimal(9, 6),
       "leftTopLatitude" -> bigDecimal(9, 6),
-      "rightBottomLatitude" -> bigDecimal(9, 6),
+      "rightBottomLongitude" -> bigDecimal(9, 6),
       "rightBottomLatitude" -> bigDecimal(9, 6)
     )
   )
@@ -25,12 +25,12 @@ package object notifications extends SecuredController {
       _ => BadRequest("Wrong parameters"),
       {
         case (name, tracingObject, ltLng, ltLat, rbLng, rbLat) => Async { future {
-          NotificationAreaDao.create {
+          val area =
             NotificationArea(None, name, user.id, tracingObject, None,
               Rectangle(Point(ltLng,ltLat), Point(rbLng, rbLat))
             )
-          }
-          Ok("Notification added")
+          NotificationAreaDao create area
+          Ok(s"Notification added: $area")
         }}
       }
     )

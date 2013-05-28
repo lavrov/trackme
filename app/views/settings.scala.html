@@ -1,5 +1,12 @@
-@(permitTrackingMeTo: List[String], mayTrack: List[String])(implicit req: Request[_])
+@(permitTrackingMeTo: List[String], mayTrack: List[String], notifications: List[model.NotificationArea])(implicit req: Request[_])
 
+@printList[T](list: List[T])(itemRender: T => Html) = {
+    <ul>
+        @for(item <- list){
+            <li>@itemRender(item)</li>
+        }
+    </ul>
+}
 @userList(list: List[String]) = {
     <ul>
         @for(user <- list){
@@ -32,12 +39,15 @@
             <input type="text" name="leftTopLongitude" placeholder="Left top point longitude"/>
             <label for="leftTopLatitude"></label>
             <input type="text" name="leftTopLatitude" placeholder="Left top point latitude"/>
-            <label for="rightBottomLatitude"></label>
-            <input type="text" name="rightBottomLatitude" placeholder="Right bottom longitude"/>
+            <label for="rightBottomLongitude"></label>
+            <input type="text" name="rightBottomLongitude" placeholder="Right bottom longitude"/>
             <label for="rightBottomLatitude"></label>
             <input type="text" name="rightBottomLatitude" placeholder="Right bottom point latitude"/>
             <label></label>
             <button class="btn" type="submit">Add</button>
+        }
+        @printList(notifications){ n =>
+            @n.name @n.trackedObject (@n.area.toString)
         }
     }
 }

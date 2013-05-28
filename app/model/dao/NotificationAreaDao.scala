@@ -28,13 +28,17 @@ object NotificationAreaDao {
     case id~name~interestedUser~trackedObject~lastAppearance~ltLong~ltLat~rbLong~rbLat =>
       NotificationArea(Some(id), name, interestedUser, trackedObject, lastAppearance,
         Rectangle(
-          Point(ltLong, ltLat), Point(ltLong, ltLat)
+          Point(ltLong, ltLat), Point(rbLong, rbLat)
         )
       )
   }
 
   def byTrackedUser(userId: String) = DB.withConnection( implicit conn =>
     SQL(s"select * from $table na where na.trackedObject = {userId}").onParams(userId).as(parser *)
+  )
+
+  def byInterestedUser(userId: String) = DB.withConnection( implicit conn =>
+    SQL(s"select * from $table na where na.interestedUser = {userId}").onParams(userId).as(parser *)
   )
 
   def updateLastAppearance(id: String, date: Date) = DB.withConnection(implicit conn =>
